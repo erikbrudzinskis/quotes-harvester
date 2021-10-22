@@ -1,0 +1,45 @@
+logging:
+  level:
+    org:
+      hibernate:
+        type: trace
+spring:
+  datasource:
+    url: jdbc:h2:file:./data/db
+    username: user
+    password: user
+    driverClassName: org.h2.Driver
+  jpa:
+    show-sql: true
+    hibernate:
+      ddl-auto: create-drop
+      format_sql: true
+      show_sql: true
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.H2Dialect
+        show_sql: true
+        format_sql: true
+        ddl-auto: update
+    spring.jpa.database-platform: org.hibernate.dialect.H2Dialect
+  h2:
+    console.enabled: true
+  batch:
+    job.enabled: false
+    initialize-schema: always
+flush_period_s: 10
+instruments:
+  - name: BTCUSD
+    instrument: BTC/USDT
+  - name: ETHUSD
+    instrument: ETH/USDT
+  - name: ETHUSD-synth1
+    instrument: ETH/USD
+    depends:
+      - ETH/BTC
+      - BTC/USDT
+  - name: ETHUSD-synth2
+    instrument: ETH/USD
+    depends:
+      - ETH/BCH
+      - USD/BCH
