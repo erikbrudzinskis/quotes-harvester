@@ -1,7 +1,6 @@
 package com.erikbrudzinskis.quotesharvester.entity;
 
 import lombok.Data;
-
 import javax.persistence.*;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -10,6 +9,10 @@ import java.time.LocalDateTime;
 @Table(name = "QUOTES")
 @Data
 public class Quote {
+
+    private static final int DB_PRECISION = 16;
+    private static final int DB_SCALE = 8;
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
@@ -17,10 +20,10 @@ public class Quote {
     @Column(name = "TIME")
     private LocalDateTime time;
 
-    @Column(name = "BID")
+    @Column(name = "BID", scale = DB_SCALE, precision = DB_PRECISION)
     private BigDecimal bid;
 
-    @Column(name = "ASK")
+    @Column(name = "ASK", scale = DB_SCALE, precision = DB_PRECISION)
     private BigDecimal ask;
 
     @Column(name = "EXCHANGE")

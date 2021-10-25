@@ -10,7 +10,8 @@ import java.util.Map;
 @Component
 @ConfigurationProperties
 @Data
-public class Config {
+public class AppConfig {
+
     private List<Map<String, String>> instruments;
     private int flushPeriodS;
 }

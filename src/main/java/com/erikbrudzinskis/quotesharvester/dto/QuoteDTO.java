@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Data
 @AllArgsConstructor
 public class QuoteDTO {
+
     private BigDecimal bid;
     private BigDecimal ask;
     private String exchange;

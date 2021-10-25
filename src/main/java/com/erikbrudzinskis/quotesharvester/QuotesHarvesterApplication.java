@@ -8,9 +8,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 @EnableBatchProcessing
 public class QuotesHarvesterApplication {
 
-	public static void main(String[] args) {
-		SpringApplication.run(QuotesHarvesterApplication.class, args);
-	}
-
-
+    public static void main(String[] args) {
+        SpringApplication.run(QuotesHarvesterApplication.class, args);
+    }
 }

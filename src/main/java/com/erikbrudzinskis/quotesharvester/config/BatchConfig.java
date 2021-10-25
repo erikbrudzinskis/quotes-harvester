@@ -3,16 +3,16 @@ package com.erikbrudzinskis.quotesharvester.config;
 import com.erikbrudzinskis.quotesharvester.batch.*;
 import com.erikbrudzinskis.quotesharvester.dto.QuoteDTO;
 import com.erikbrudzinskis.quotesharvester.entity.Quote;
-import com.erikbrudzinskis.quotesharvester.harvester.Harvester;
 import com.erikbrudzinskis.quotesharvester.repository.QuoteRepository;
 import org.springframework.batch.core.*;
-import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.JobLauncher;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
+import org.springframework.batch.core.repository.JobExecutionAlreadyRunningException;
+import org.springframework.batch.core.repository.JobInstanceAlreadyCompleteException;
+import org.springframework.batch.core.repository.JobRestartException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.scheduling.annotation.EnableScheduling;
@@ -22,26 +22,24 @@ import java.util.concurrent.TimeUnit;
 
 
 @Configuration
-@EnableBatchProcessing
 @EnableScheduling
 public class BatchConfig {
-    @Autowired
-    private JobBuilderFactory jobBuilderFactory;
+
+    private final JobBuilderFactory jobBuilderFactory;
+    private final StepBuilderFactory stepBuilderFactory;
+    private final QuoteRepository quoteRepository;
+    private final JobLauncher jobLauncher;
 
     @Autowired
-    private StepBuilderFactory stepBuilderFactory;
-
-    @Autowired
-    private QuoteRepository quoteRepository;
-
-    @Autowired
-    private Config config;
-
-    @Autowired
-    JobLauncher jobLauncher;
+    public BatchConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, QuoteRepository quoteRepository, JobLauncher jobLauncher) {
+        this.jobBuilderFactory = jobBuilderFactory;
+        this.stepBuilderFactory = stepBuilderFactory;
+        this.quoteRepository = quoteRepository;
+        this.jobLauncher = jobLauncher;
+    }
 
     @Scheduled(fixedRateString = "${flush_period_s}", initialDelay = 20, timeUnit = TimeUnit.SECONDS)
-    public void launchJob() throws Exception {
+    public void launchJob() throws JobInstanceAlreadyCompleteException, JobExecutionAlreadyRunningException, JobParametersInvalidException, JobRestartException {
         jobLauncher
                 .run(processJob(),
                         new JobParametersBuilder().addLong("time", System.currentTimeMillis()).toJobParameters());
@@ -57,7 +55,7 @@ public class BatchConfig {
     @Bean
     public Step step() {
         return stepBuilderFactory.get("step")
-                .<QuoteDTO, Quote> chunk(4)
+                .<QuoteDTO, Quote> chunk(8)
                 .reader(new Reader())
                 .processor(new Processor())
                 .writer(new Writer(quoteRepository))
