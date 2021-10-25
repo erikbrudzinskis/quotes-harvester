@@ -27,10 +27,10 @@ public abstract class Harvester implements Runnable {
 
     private Class<? extends StreamingExchange> exchangeClass;
 
-    private static Map<String, QuoteDTO> quotes = new ConcurrentHashMap<>();
-    private static Map<String, QuoteDTO> dependsQuotes = new ConcurrentHashMap<>();
+    private Map<String, QuoteDTO> quotes = new ConcurrentHashMap<>();
+    private Map<String, QuoteDTO> dependsQuotes = new ConcurrentHashMap<>();
 
-    public static final String STREAMING_EXCHANGE = "StreamingExchange";
+    private static final String STREAMING_EXCHANGE = "StreamingExchange";
 
     protected Harvester(Class<? extends StreamingExchange> exchangeClass) {
         this.exchangeClass = exchangeClass;
@@ -179,7 +179,7 @@ public abstract class Harvester implements Runnable {
         }
     }
 
-    public static Map<String, QuoteDTO> getQuotes() {
+    public Map<String, QuoteDTO> getQuotes() {
         return quotes;
     }
 

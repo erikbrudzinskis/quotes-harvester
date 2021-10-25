@@ -4,17 +4,17 @@ import com.erikbrudzinskis.quotesharvester.entity.Quote;
 import com.erikbrudzinskis.quotesharvester.harvester.Harvester;
 import com.erikbrudzinskis.quotesharvester.repository.QuoteRepository;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.beans.factory.annotation.Autowired;
+
 
 import java.util.List;
 
 public class Writer implements ItemWriter<Quote> {
-
+    private final Harvester harvester;
     private final QuoteRepository quoteRepository;
 
-    @Autowired
-    public Writer(QuoteRepository quoteRepository) {
+    public Writer(QuoteRepository quoteRepository, Harvester harvester) {
         this.quoteRepository = quoteRepository;
+        this.harvester = harvester;
     }
 
     @Override
@@ -24,6 +24,6 @@ public class Writer implements ItemWriter<Quote> {
             quoteRepository.save(item);
         }
 
-        Harvester.getQuotes().clear();
+        harvester.getQuotes().clear();
     }
 }

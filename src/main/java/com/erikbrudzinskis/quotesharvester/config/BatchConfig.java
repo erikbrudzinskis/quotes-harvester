@@ -3,6 +3,8 @@ package com.erikbrudzinskis.quotesharvester.config;
 import com.erikbrudzinskis.quotesharvester.batch.*;
 import com.erikbrudzinskis.quotesharvester.dto.QuoteDTO;
 import com.erikbrudzinskis.quotesharvester.entity.Quote;
+import com.erikbrudzinskis.quotesharvester.harvester.BinanceHarvester;
+import com.erikbrudzinskis.quotesharvester.harvester.PoloniexHarvester;
 import com.erikbrudzinskis.quotesharvester.repository.QuoteRepository;
 import org.springframework.batch.core.*;
 import org.springframework.batch.core.configuration.annotation.JobBuilderFactory;
@@ -29,13 +31,17 @@ public class BatchConfig {
     private final StepBuilderFactory stepBuilderFactory;
     private final QuoteRepository quoteRepository;
     private final JobLauncher jobLauncher;
+    private final PoloniexHarvester poloniexHarvester;
+    private final BinanceHarvester binanceHarvester;
 
     @Autowired
-    public BatchConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, QuoteRepository quoteRepository, JobLauncher jobLauncher) {
+    public BatchConfig(JobBuilderFactory jobBuilderFactory, StepBuilderFactory stepBuilderFactory, QuoteRepository quoteRepository, JobLauncher jobLauncher, PoloniexHarvester poloniexHarvester, BinanceHarvester binanceHarvester) {
         this.jobBuilderFactory = jobBuilderFactory;
         this.stepBuilderFactory = stepBuilderFactory;
         this.quoteRepository = quoteRepository;
         this.jobLauncher = jobLauncher;
+        this.poloniexHarvester = poloniexHarvester;
+        this.binanceHarvester = binanceHarvester;
     }
 
     @Scheduled(fixedRateString = "${flush_period_s}", initialDelay = 20, timeUnit = TimeUnit.SECONDS)
@@ -49,16 +55,26 @@ public class BatchConfig {
     public Job processJob() {
         return jobBuilderFactory.get("processJob")
                 .incrementer(new RunIdIncrementer())
-                .flow(step()).end().build();
+                .flow(step1()).next(step2()).end().build();
     }
 
     @Bean
-    public Step step() {
+    public Step step1() {
         return stepBuilderFactory.get("step")
-                .<QuoteDTO, Quote> chunk(8)
-                .reader(new Reader())
+                .<QuoteDTO, Quote> chunk(4)
+                .reader(new Reader(binanceHarvester))
                 .processor(new Processor())
-                .writer(new Writer(quoteRepository))
+                .writer(new Writer(quoteRepository, binanceHarvester))
+                .build();
+    }
+
+    @Bean
+    public Step step2() {
+        return stepBuilderFactory.get("step")
+                .<QuoteDTO, Quote> chunk(4)
+                .reader(new Reader(poloniexHarvester))
+                .processor(new Processor())
+                .writer(new Writer(quoteRepository, poloniexHarvester))
                 .build();
     }
 }
